@@ -1,0 +1,283 @@
+#------------------------------------ TOWN ---------------------------------------
+[roles.Sheriff]
+name = "Sheriff"
+faction = "town"
+category = "Town Investigative"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "See if your target is innocent or suspicious."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Tracker]
+name = "Tracker"
+faction = "town"
+category = "Town Investigative"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "See who your target visits."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Psychic]
+name = "Psychic"
+faction = "town"
+category = "Town Investigative"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Target a player to have a vision at night."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Deputy]
+name = "Deputy"
+faction = "town"
+category = "Town Killing"
+attack = 1
+defense = 0
+ability_type = "day"
+ability_description = "Target a player to try and shoot during the day."
+charges = 1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Vigilante]
+name = "Vigilante"
+faction = "town"
+category = "Town Killing"
+attack = 1
+defense = 0
+ability_type = "night"
+ability_description = "Shoot a player at night."
+charges = 3
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Mayor]
+name = "Mayor"
+faction = "town"
+category = "Town Power"
+attack = 0
+defense = 0
+ability_type = "day"
+ability_description = "Reveal as the mayor during the day, gaining 2 permanant extra votes."
+charges = 1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Prosecutor]
+name = "Prosecutor"
+faction = "town"
+category = "Town Power"
+attack = 0
+defense = 0
+ability_type = "day"
+ability_description = "Prosecute a player during the day, immediately voting them guilty."
+charges = 2
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Cleric]
+name = "Cleric"
+faction = "town"
+category = "Town Protective"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Barrier a player at night, giving them powerful defense."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Trapper]
+name = "Trapper"
+faction = "town"
+category = "Town Protective"
+attack = 2
+defense = 0
+ability_type = "night"
+ability_description = "Trap a player at night, protecting them, attacking potential attackers to them, and revealing the roles of all players who visit them."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Socialite]
+name = "Socialite"
+faction = "town"
+category = "Town Support"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Host a party at a player's house, rejecting uninvited visitors."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = true
+control_immune = false
+
+[roles.TavernKeeper]
+name = "Tavern Keeper"
+faction = "town"
+category = "Town Support"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Roleblock a target, preventing them from using their ability."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = true
+control_immune = false
+
+#------------------------------------ Coven ---------------------------------------
+
+[roles.Medusa]
+name = "Medusa"
+faction = "coven"
+category = "Coven Deception"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Stone a player, preventing their last will and role from being shown when they die."
+charges = 3
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Illusionist]
+name = "Illusionist"
+faction = "coven"
+category = "Coven Deception"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Cast an illusion over a player, having them show as a townie for one night."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Conjurer]
+name = "Conjurer"
+faction = "coven"
+category = "Coven Killing"
+attack = 2
+defense = 0
+ability_type = "day"
+ability_description = "Conjure a meteor during the day, dealing a powerful attack to someone."
+charges = 1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Ritualist]
+name = "Ritualist"
+faction = "coven"
+category = "Coven Killing"
+attack = 3
+defense = 0
+ability_type = "night"
+ability_description = "Cast a blood ritual on a target, dealing an unstoppable attack to them if you can guess their role."
+charges = 3
+unique = true
+astral = true
+roleblock_immune = false
+control_immune = false
+
+[roles.Poisoner]
+name = "Poisoner"
+faction = "coven"
+category = "Coven Utility"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Roleblock a player, preventing them from using their ability."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = true
+control_immune = false
+
+[roles.Wildling]
+name = "Wildling"
+faction = "coven"
+category = "Coven Utility"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Gain the scent of a player, seeing who they visit and who visits them on all future nights."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Witch]
+name = "Witch"
+faction = "coven"
+category = "Coven Power"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Control a player, making them visit another player of your choice. This also reveals them."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = true
+control_immune = true
+
+[roles.HexMaster]
+name = "Hex Master"
+faction = "coven"
+category = "Coven Power"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Hex a player. When all players are hexed, all players not alligned with you die."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Archmage]
+name = "Archmage"
+faction = "coven"
+category = "Coven Power"
+attack = 0
+defense = 0
+ability_type = "night"
+ability_description = "Retrain other coven members into a different Coven Role. You cannot retrain players other than yourself into Coven Killing or Coven Power roles."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
