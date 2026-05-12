@@ -15,11 +15,6 @@ function createLobby() {
     socket.emit("create_lobby", { name: username });
 }
 
-function joinLobby(id) {
-    const username = localStorage.getItem("username") || "Guest";
-    socket.emit("join_lobby", { lobby_id: id, name: username });
-}
-
 socket.on("lobby_list", (lobbies) => {
     const container = document.getElementById("lobbies");
     container.innerHTML = "";

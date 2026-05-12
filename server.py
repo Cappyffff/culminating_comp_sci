@@ -7,7 +7,13 @@ from flask_socketio import SocketIO, emit
 from rich.console import Console
 from rich.panel import Panel
 import uuid
+import socket
 
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+local_ip = s.getsockname()[0]
+s.close()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'RLRY2JRG'
 
@@ -65,7 +71,7 @@ def handle_disconnect():
 
     for lid in list(lobbies.keys()):
         if request.sid in lobbies[lid]["players"]:
-            lobbies[lid]["players"].remove(request.sid)
+            lobbies[lid]["players"] = [p for p in lobbies[lid]["players"] if p["sid"] != request.sid]
         if len(lobbies[lid]["players"]) == 0:
             del lobbies[lid]
 
@@ -111,6 +117,6 @@ if __name__ == '__main__':
     console.print("[bold #FA5787]WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[/bold #FA5787]")
     print(" * Running on all addresses (0.0.0.0)")
     print(" * Running on http://127.0.0.1:5001")
-    print(" * Running on http://10.5.10.114:5001")
+    print(f" * Running on http://{local_ip}:5001")
     console.print("[bold #FFC000]Press CTRL+C to quit[/bold #FFC000]")
     socketio.run(app, host='0.0.0.0', port=5001, debug=True, use_reloader=False)

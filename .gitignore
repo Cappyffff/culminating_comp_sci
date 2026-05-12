@@ -2,11 +2,14 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyc
+
+# Virtual environments
 .env
 venv/
 .venv/
 
-# Mac
+# macOS
 .DS_Store
 
 # VSCode
