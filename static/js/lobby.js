@@ -3,16 +3,13 @@ console.log("lobby.js loaded");
 const socket = io();
 
 socket.on("connect", () => {
-    console.log("CONNECTED:", socket.id);
-
-    const status = document.getElementById("status");
-    if (status) {
-        status.innerText = "Connected to server";
-    }
+    document.getElementById("status").innerText = "Connected";
 });
+
 function createLobby() {
-    const username = localStorage.getItem("username") || "Guest";
-    socket.emit("create_lobby", { name: username });
+    socket.emit("create_lobby", {
+        name: "Player"
+    });
 }
 
 socket.on("lobby_list", (lobbies) => {
@@ -35,6 +32,7 @@ socket.on("lobby_list", (lobbies) => {
         container.appendChild(div);
     });
 });
+
 function joinLobby(id, username) {
     socket.emit("join_lobby", {
         lobby_id: id,
