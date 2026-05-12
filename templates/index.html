@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Town of Salem 2</title>
+
+    <!-- Link to your external CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+    <!-- Background image -->
+    <img class="bg" src="/static/images/landing-page.png">
+
+    <!-- UI: username input + button -->
+    <div class="ui">
+        <input type="text" id="username" placeholder="Enter your username">
+        <br>
+        <button id="enterLobby">Enter Lobby</button>
+    </div>
+
+    <script>
+    document.getElementById("enterLobby").onclick = () => {
+        const usernameInput = document.getElementById("username").value.trim();
+        if (!usernameInput) {
+            alert("Please enter a username!");
+            return;
+        }
+
+        // Store the username to use in the lobby
+        localStorage.setItem("username", usernameInput);
+
+        // Go to the lobby page
+        window.location.href = "/lobby";
+    };
+    </script>
+
+</body>
+</html>
