@@ -106,5 +106,10 @@ if __name__ == '__main__':
         console.print("[bold #FFC000]Press CTRL+C to quit[/bold #FFC000]")
         socketio.run(app, host='0.0.0.0', port=5001, debug=True, use_reloader=False)
 
+
     except KeyboardInterrupt:
-        console.print("\n[bold red]Server Closing[/bold red]")
+        console.print(Panel(
+            f"Server Shutting Down: Keyboard Interrupt",
+            title="ERROR",
+            style="#FFA500"
+        ))
