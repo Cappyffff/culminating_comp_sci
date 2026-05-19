@@ -6,20 +6,25 @@ import socket
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask_socketio import SocketIO
 from rich.console import Console
 from rich.panel import Panel
 from services.lobby_services import LobbyService
+from services.debug_services import DebugService
 from game.state import GameState, Player
 from game.roles import load_role_registry
 from config import Config
 from network import LANDiscovery
+from events import debug as debug_events
+from events import lobby as lobby_events
+from events import core as core_events
 
 lobby_service = LobbyService()
 game_state = GameState()
 game_state.role_registry = load_role_registry()
 discovery = None
+debug_service = DebugService()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
@@ -29,9 +34,12 @@ s.close()
 app = Flask(__name__)
 app.config.from_object(Config)
 
-
 console = Console()
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins='*')
+
+debug_events.register(socketio, debug_service)
+lobby_events.register(socketio, lobby_service, debug_service, game_state)
+core_events.register(socketio, lobby_service, debug_service, console)
 
 @app.route('/')
 def index():
@@ -41,69 +49,50 @@ def index():
 def lobby():
     return render_template("lobby.html")
 
-@socketio.on('connect')
-def handle_connect(auth=None):
-    console.print(Panel(
-        f"Client connected: {request.sid}",
-        title="CONNECT",
-        style="green"
-    ))
-    emit('connection_ack', {'sid': request.sid, 'message': 'Connected to server'})
-    socketio.emit("lobby_list", lobby_service.list_lobbies(), to=request.sid)
+@app.route("/debug")
+def debug():
+    key = request.args.get("key")
+    authenticated = key == app.config["SECRET_KEY"]
 
-@socketio.on('disconnect')
-def handle_disconnect(reason=None):
-    console.print(Panel(
-        f"Client disconnected: {request.sid}",
-        title="DISCONNECT",
-        style="red"
-    ))
-    lobby_service.remove_player(request.sid)
-    socketio.emit("lobby_list", lobby_service.list_lobbies())
-
-@socketio.on("create_lobby")
-def create_lobby(data):
-    print("🔥 CREATE_LOBBY RECEIVED:", data, request.sid)
-    lobby_id = lobby_service.create_lobby(
-        request.sid,
-        data.get("name", "Host")
+    return render_template(
+        "debug.html",
+        secret_key=key if authenticated else None,
+        authenticated=authenticated
     )
 
-    socketio.emit("lobby_list", lobby_service.list_lobbies())
-    emit("lobby_created", {"lobby_id": lobby_id})
+@app.route("/api/debug")
+def api_debug():
+    key = request.args.get("key")
 
-@socketio.on("join_lobby")
-def join_lobby(data):
-    lobby_service.join_lobby(
-        data["lobby_id"],
-        request.sid,
-        data.get("name", "Guest")
-    )
-    socketio.emit("lobby_list", lobby_service.list_lobbies())
+    if key != app.config["SECRET_KEY"]:
+        return jsonify({"error": "Unauthorized"}), 401
 
-@socketio.on("request_lobbies")
-def request_lobbies():
-    socketio.emit(
-        "lobby_list",
-        lobby_service.list_lobbies(),
-        to=request.sid
-    )
+    return jsonify({
+        "logs": debug_service.get_logs(),
+        "lobbies": debug_service.get_lobby_data(lobby_service),
+        "audit": getattr(debug_service, "get_audit", lambda: [])()
+    })
 
-@socketio.on("lock_lobby")
-def lock_lobby(data):
-    success = lobby_service.lock_lobby(data["lobby_id"], request.sid)
-    if success:
-        socketio.emit("lobby_list", lobby_service.list_lobbies())
+@app.route("/api/debug/reveal-role")
+def reveal_role():
+    key = request.args.get("key")
+    sid = request.args.get("sid")
 
-@socketio.on('ping_test')
-def handle_ping(data):
-    console.print(Panel(
-        f"SID: {request.sid}\nDATA: {data}",
-        title="PING",
-        style="yellow"
-    ))
-    emit('pong_test', {'test': 'HELLO FROM SERVER'}, broadcast=True)
-    print("Pong Sent")
+    if key != app.config["SECRET_KEY"]:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    for lobby in lobby_service.lobbies.values():
+        for player in lobby["players"]:
+            if player["sid"] == sid:
+                role = player.get("role", "No role assigned")
+                debug_service.log(
+                    "role_reveal",
+                    f"Role revealed for {player['name']}",
+                    {"sid": sid, "role": role}
+                )
+                return jsonify({"role": role})
+
+    return jsonify({"error": "Not found"}), 404
 
 if __name__ == '__main__':
     console.clear()
@@ -120,7 +109,6 @@ if __name__ == '__main__':
         discovery = LANDiscovery("cappyffff", 5001)
         discovery.start()
         socketio.run(app, host='0.0.0.0', port=5001, debug=True, use_reloader=False)
-
 
     except KeyboardInterrupt:
         console.print(Panel(

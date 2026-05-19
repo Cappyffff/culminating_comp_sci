@@ -1,20 +1,416 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Lobby</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby Browser</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .pregame-player-entry {
+        padding: 8px 12px;
+        background: rgba(60, 30, 8, 0.4);
+        border: 1px solid rgba(90, 48, 12, 0.4);
+        border-radius: 2px;
+        font-size: 13px;
+        color: #c8b488;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+        .pregame-player-entry .pnum {
+            color: #7a5a28;
+            font-size: 11px;
+            min-width: 24px;
+        }
+        
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #050200;
+            font-family: 'Cinzel', serif;
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .browser-wrapper {
+            position: relative;
+            z-index: 1;
+            width: min(860px, 95vw);
+        }
+
+        .browser-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 480px;
+            background: rgba(10, 5, 0, 0.82);
+            border: 5px solid #7a4818;
+            border-radius: 3px;
+            box-shadow:
+                0 0 0 1px #2e1400,
+                0 0 0 3px #a87828,
+                0 0 0 5px #3e1c00,
+                0 0 0 7px #140800,
+                0 16px 48px rgba(0, 0, 0, 0.92);
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        .corner {
+            position: absolute;
+            color: #c4921a;
+            font-size: 16px;
+            z-index: 20;
+            line-height: 1;
+            text-shadow: 0 0 6px rgba(180, 130, 20, 0.6);
+            pointer-events: none;
+            user-select: none;
+        }
+        .corner-tl { top: 4px;  left:  7px; }
+        .corner-tr { top: 4px;  right: 7px; }
+        .corner-bl { bottom: 4px; left:  7px; }
+        .corner-br { bottom: 4px; right: 7px; }
+
+        .browser-titlebar {
+            flex: 0 0 auto;
+            background: linear-gradient(180deg, #281200 0%, #190b00 100%);
+            border-bottom: 2px solid #4e2a06;
+            padding: 10px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .browser-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #d4a020;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(200, 150, 20, 0.45);
+        }
+
+        #status {
+            font-family: monospace;
+            font-size: 11px;
+            letter-spacing: 0;
+            color: #4a3a1a;
+            transition: color 0.3s;
+        }
+        #status.connected { color: #58a858; }
+
+        .lobby-table-container {
+            flex: 0 0 auto;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .lobby-table-container::-webkit-scrollbar { width: 5px; }
+        .lobby-table-container::-webkit-scrollbar-track { background: #0e0600; }
+        .lobby-table-container::-webkit-scrollbar-thumb {
+            background: #5a2e08;
+            border-radius: 3px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: rgba(18, 8, 0, 0.98);
+            color: #c4921a;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 9px 14px;
+            border-bottom: 1px solid #3e1c00;
+            text-align: left;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(70, 35, 8, 0.3);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        tbody tr:hover    { background: rgba(90, 48, 12, 0.45); }
+        tbody tr.selected {
+            background: rgba(120, 68, 16, 0.5) !important;
+            box-shadow: inset 3px 0 0 #c4921a;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #c8b488;
+        }
+
+        .lobby-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #ddd0a8;
+        }
+        .lobby-icon { color: #d84870; font-size: 13px; }
+
+        td.host-cell    { color: #d4a020; }
+        td.roles-cell   { color: #6a5a38; font-size: 12px; letter-spacing: 1px; }
+        td.players-cell { color: #c8b488; }
+
+        .empty-row td {
+            text-align: center;
+            padding: 44px 20px;
+            color: #3a2a10;
+            font-size: 12px;
+            letter-spacing: 2px;
+            cursor: default;
+        }
+        .empty-row:hover { background: transparent !important; }
+
+        .preview-area { flex: 1; }
+
+        .browser-footer {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 6px;
+            padding: 10px 12px;
+            border-top: 2px solid #3e1c00;
+            background: linear-gradient(180deg, #160800 0%, #0c0500 100%);
+        }
+
+        .btn-wood {
+            flex: 1;
+            padding: 9px 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #f0d880;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+            background: linear-gradient(180deg, #8a4c1e 0%, #622e08 45%, #7a3e12 100%);
+            border: 1px solid #3a1800;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: filter 0.12s, transform 0.08s;
+            box-shadow:
+                inset 0 1px 0 rgba(200, 140, 50, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                0 2px 5px rgba(0, 0, 0, 0.65);
+            white-space: nowrap;
+        }
+
+        .btn-wood:hover:not(:disabled) {
+            filter: brightness(1.3);
+            transform: translateY(-1px);
+        }
+        .btn-wood:active:not(:disabled) {
+            transform: translateY(1px);
+            filter: brightness(0.85);
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .btn-wood:disabled {
+            opacity: 0.32;
+            cursor: not-allowed;
+        }
+
+    .modal-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #110700;
+            border: 3px solid #7a4818;
+            border-radius: 3px;
+            box-shadow:
+                0 0 0 1px #2e1400,
+                0 0 0 2px #a87828,
+                0 0 0 4px #3e1c00,
+                0 12px 32px rgba(0, 0, 0, 0.9);
+            padding: 28px 32px 22px;
+            width: 320px;
+        }
+
+        .modal-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #d4a020;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-label {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #7a5a28;
+            margin-bottom: 7px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 9px 12px;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            color: #e8d090;
+            background: #0a0400;
+            border: 1px solid #5a3010;
+            border-radius: 2px;
+            outline: none;
+            transition: border-color 0.15s;
+            margin-bottom: 20px;
+        }
+        .modal-input:focus { border-color: #a87828; }
+        .modal-input::placeholder { color: #3a2810; }
+
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+        }
+        .modal-footer .btn-wood { font-size: 10px; padding: 8px 4px; }
+    </style>
 </head>
 <body>
 
-<h1>Game Lobby</h1>
+<img class="bg" src="/static/images/landing-page.png" alt="">
 
-<p id="status">Connecting…</p>
+<div class="browser-wrapper">
+    <div class="browser-panel">
 
-<button onclick="createLobby()">Create Lobby</button>
+        <span class="corner corner-tl">✦</span>
+        <span class="corner corner-tr">✦</span>
+        <span class="corner corner-bl">✦</span>
+        <span class="corner corner-br">✦</span>
 
-<div id="lobbies"></div> <!-- container for lobby list -->
+        <div class="browser-titlebar">
+            <span class="browser-title">Game Browser</span>
+            <span id="status">Connecting…</span>
+        </div>
+
+        <div class="lobby-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lobby Name</th>
+                        <th>Host</th>
+                        <th>Roles</th>
+                        <th>Players</th>
+                    </tr>
+                </thead>
+                <tbody id="lobbies">
+                    <tr class="empty-row">
+                        <td colspan="4">No lobbies found — create one or refresh</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="preview-area"></div>
+
+        <div class="browser-footer">
+            <button class="btn-wood" id="create-btn"  onclick="openModal()">Create</button>
+            <button class="btn-wood" id="leave-btn"   onclick="leaveLobby()" style="display:none">Leave</button>
+            <button class="btn-wood" id="lock-btn" onclick="lockLobby()" style="display:none">Lock</button>
+            <button class="btn-wood" onclick="joinRandom()">Join Random</button>
+            <button class="btn-wood" id="join-btn"    onclick="joinSelected()" disabled>Join</button>
+            <button class="btn-wood" onclick="refreshLobbies()">Refresh</button>
+            <button class="btn-wood" onclick="returnHome()">Return Home</button>
+        </div>
+<div id="pregame-panel" style="display:none; flex-direction:column; flex:1; padding: 20px 24px; gap: 16px;">
+
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:13px; letter-spacing:2px; color:#c4921a; text-transform:uppercase;">
+            Game Starting In
+        </span>
+        <span id="countdown-display" style="font-size:22px; font-weight:700; color:#d4a020; text-shadow: 0 0 12px rgba(200,150,20,0.5);">
+            10
+        </span>
+    </div>
+
+<div id="game-view" style="display:none; flex-direction:column; flex:1; padding:20px 24px; gap:14px; overflow:hidden;">
+    <div style="font-size:11px; letter-spacing:3px; color:#c4921a; text-transform:uppercase;
+                border-bottom:1px solid #3e1c00; padding-bottom:8px;">
+        Debug Terminal
+    </div>
+    <div id="debug-terminal"
+         style="flex:1; overflow-y:auto; font-family:monospace; font-size:12px;
+                color:#8ab88a; line-height:1.9; white-space:pre; padding-right:4px;">
+        Waiting for role assignment…
+    </div>
+</div>
+
+    <div id="pregame-player-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input
+            id="nickname-input"
+            class="modal-input"
+            type="text"
+            placeholder="Enter nickname…"
+            style="margin-bottom:0; flex:1;"
+            onkeydown="if(event.key==='Enter') submitNickname()"
+        >
+        <button class="btn-wood" onclick="submitNickname()" style="flex:0 0 auto; width:80px;">
+            Set Name
+        </button>
+        <button class="btn-wood" onclick="anonymousName()" style="flex:0 0 auto; width:100px;">
+            Anonymous
+        </button>
+    </div>
+
+    
+        <div id="pregame-host-controls" style="display:none; margin-top:6px; gap:8px;">
+    <button class="btn-wood" onclick="startGame()" style="flex:1; padding:11px; width:399px;">
+        Start Game
+    </button>
+    <button class="btn-wood" onclick="unlockLobby()" style="flex:1; padding:11px; width: 399px;">
+        Unlock Lobby
+    </button>
+</div>
+    </div>
+
+</div>
+
+    </div>
+</div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="/static/js/lobby.js"></script>
-
+<div class="modal-overlay" id="create-modal">
+    <div class="modal-box">
+        <div class="modal-title">Create Lobby</div>
+        <label class="modal-label" for="lobby-name-input">Lobby Name</label>
+        <input class="modal-input" id="lobby-name-input" type="text" placeholder="My Game">
+        <div class="modal-footer">
+            <button class="btn-wood" onclick="confirmCreate()">Create</button>
+            <button class="btn-wood" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DEV CONSOLE</title>
+    <link rel="stylesheet" href="/static/css/debug.css">
+</head>
+<body>
+
+<div class="topbar">
+    <h1>DEV CONSOLE</h1>
+    {% if authenticated %}
+    <button id="refresh">REFRESH</button>
+    {% endif %}
+</div>
+
+{% if authenticated %}
+
+<div class="grid">
+    <div class="panel">
+        <h2>EVENT LOG</h2>
+        <div id="logs"></div>
+    </div>
+
+    <div class="panel">
+        <h2>LOBBIES</h2>
+        <div id="lobbies"></div>
+    </div>
+</div>
+
+<script>
+const KEY = "{{ secret_key }}";
+</script>
+<script src="/static/js/debug.js"></script>
+
+{% else %}
+
+<div class="login">
+    <h2>Enter Key</h2>
+    <input id="keyInput" type="password" placeholder="Secret key" />
+    <button onclick="location.href='/debug?key=' + document.getElementById('keyInput').value">
+        Enter
+    </button>
+</div>
+
+{% endif %}
+
+</body>
+</html>
