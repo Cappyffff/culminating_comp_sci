@@ -7,292 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        .pregame-player-entry {
-        padding: 8px 12px;
-        background: rgba(60, 30, 8, 0.4);
-        border: 1px solid rgba(90, 48, 12, 0.4);
-        border-radius: 2px;
-        font-size: 13px;
-        color: #c8b488;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-        .pregame-player-entry .pnum {
-            color: #7a5a28;
-            font-size: 11px;
-            min-width: 24px;
-        }
-        
-        body {
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #050200;
-            font-family: 'Cinzel', serif;
-        }
-
-        .bg {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-        }
-
-        .browser-wrapper {
-            position: relative;
-            z-index: 1;
-            width: min(860px, 95vw);
-        }
-
-        .browser-panel {
-            display: flex;
-            flex-direction: column;
-            min-height: 480px;
-            background: rgba(10, 5, 0, 0.82);
-            border: 5px solid #7a4818;
-            border-radius: 3px;
-            box-shadow:
-                0 0 0 1px #2e1400,
-                0 0 0 3px #a87828,
-                0 0 0 5px #3e1c00,
-                0 0 0 7px #140800,
-                0 16px 48px rgba(0, 0, 0, 0.92);
-            position: relative;
-            overflow: hidden;
-        }
-
-
-        .corner {
-            position: absolute;
-            color: #c4921a;
-            font-size: 16px;
-            z-index: 20;
-            line-height: 1;
-            text-shadow: 0 0 6px rgba(180, 130, 20, 0.6);
-            pointer-events: none;
-            user-select: none;
-        }
-        .corner-tl { top: 4px;  left:  7px; }
-        .corner-tr { top: 4px;  right: 7px; }
-        .corner-bl { bottom: 4px; left:  7px; }
-        .corner-br { bottom: 4px; right: 7px; }
-
-        .browser-titlebar {
-            flex: 0 0 auto;
-            background: linear-gradient(180deg, #281200 0%, #190b00 100%);
-            border-bottom: 2px solid #4e2a06;
-            padding: 10px 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .browser-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #d4a020;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(200, 150, 20, 0.45);
-        }
-
-        #status {
-            font-family: monospace;
-            font-size: 11px;
-            letter-spacing: 0;
-            color: #4a3a1a;
-            transition: color 0.3s;
-        }
-        #status.connected { color: #58a858; }
-
-        .lobby-table-container {
-            flex: 0 0 auto;
-            max-height: 220px;
-            overflow-y: auto;
-        }
-
-        .lobby-table-container::-webkit-scrollbar { width: 5px; }
-        .lobby-table-container::-webkit-scrollbar-track { background: #0e0600; }
-        .lobby-table-container::-webkit-scrollbar-thumb {
-            background: #5a2e08;
-            border-radius: 3px;
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        thead th {
-            position: sticky;
-            top: 0;
-            background: rgba(18, 8, 0, 0.98);
-            color: #c4921a;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            padding: 9px 14px;
-            border-bottom: 1px solid #3e1c00;
-            text-align: left;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid rgba(70, 35, 8, 0.3);
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        tbody tr:hover    { background: rgba(90, 48, 12, 0.45); }
-        tbody tr.selected {
-            background: rgba(120, 68, 16, 0.5) !important;
-            box-shadow: inset 3px 0 0 #c4921a;
-        }
-
-        tbody td {
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #c8b488;
-        }
-
-        .lobby-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            color: #ddd0a8;
-        }
-        .lobby-icon { color: #d84870; font-size: 13px; }
-
-        td.host-cell    { color: #d4a020; }
-        td.roles-cell   { color: #6a5a38; font-size: 12px; letter-spacing: 1px; }
-        td.players-cell { color: #c8b488; }
-
-        .empty-row td {
-            text-align: center;
-            padding: 44px 20px;
-            color: #3a2a10;
-            font-size: 12px;
-            letter-spacing: 2px;
-            cursor: default;
-        }
-        .empty-row:hover { background: transparent !important; }
-
-        .preview-area { flex: 1; }
-
-        .browser-footer {
-            flex: 0 0 auto;
-            display: flex;
-            gap: 6px;
-            padding: 10px 12px;
-            border-top: 2px solid #3e1c00;
-            background: linear-gradient(180deg, #160800 0%, #0c0500 100%);
-        }
-
-        .btn-wood {
-            flex: 1;
-            padding: 9px 4px;
-            font-family: 'Cinzel', serif;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #f0d880;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-            background: linear-gradient(180deg, #8a4c1e 0%, #622e08 45%, #7a3e12 100%);
-            border: 1px solid #3a1800;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: filter 0.12s, transform 0.08s;
-            box-shadow:
-                inset 0 1px 0 rgba(200, 140, 50, 0.3),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-                0 2px 5px rgba(0, 0, 0, 0.65);
-            white-space: nowrap;
-        }
-
-        .btn-wood:hover:not(:disabled) {
-            filter: brightness(1.3);
-            transform: translateY(-1px);
-        }
-        .btn-wood:active:not(:disabled) {
-            transform: translateY(1px);
-            filter: brightness(0.85);
-            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        .btn-wood:disabled {
-            opacity: 0.32;
-            cursor: not-allowed;
-        }
-
-    .modal-overlay {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.72);
-    z-index: 50;
-    align-items: center;
-    justify-content: center;
-        }
-        .modal-overlay.open { display: flex; }
-
-        .modal-box {
-            background: #110700;
-            border: 3px solid #7a4818;
-            border-radius: 3px;
-            box-shadow:
-                0 0 0 1px #2e1400,
-                0 0 0 2px #a87828,
-                0 0 0 4px #3e1c00,
-                0 12px 32px rgba(0, 0, 0, 0.9);
-            padding: 28px 32px 22px;
-            width: 320px;
-        }
-
-        .modal-title {
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #d4a020;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-label {
-            display: block;
-            font-size: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #7a5a28;
-            margin-bottom: 7px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 9px 12px;
-            font-family: 'Cinzel', serif;
-            font-size: 13px;
-            color: #e8d090;
-            background: #0a0400;
-            border: 1px solid #5a3010;
-            border-radius: 2px;
-            outline: none;
-            transition: border-color 0.15s;
-            margin-bottom: 20px;
-        }
-        .modal-input:focus { border-color: #a87828; }
-        .modal-input::placeholder { color: #3a2810; }
-
-        .modal-footer {
-            display: flex;
-            gap: 8px;
-        }
-        .modal-footer .btn-wood { font-size: 10px; padding: 8px 4px; }
-    </style>
+    <link rel="stylesheet" href="/static/css/lobby.css">
 </head>
 <body>
 
@@ -332,75 +47,62 @@
         <div class="preview-area"></div>
 
         <div class="browser-footer">
-            <button class="btn-wood" id="create-btn"  onclick="openModal()">Create</button>
-            <button class="btn-wood" id="leave-btn"   onclick="leaveLobby()" style="display:none">Leave</button>
+            <button class="btn-wood" id="create-btn" onclick="openModal()">Create</button>
+            <button class="btn-wood" id="host-settings-btn" onclick="openHostSettings()" style="display:none">Host Settings</button>
+            <button class="btn-wood" id="view-rolelist-btn" onclick="openRoleListView()" style="display:none">View Role List</button>
+            <button class="btn-wood" id="leave-btn" onclick="leaveLobby()" style="display:none">Leave</button>
             <button class="btn-wood" id="lock-btn" onclick="lockLobby()" style="display:none">Lock</button>
-            <button class="btn-wood" onclick="joinRandom()">Join Random</button>
-            <button class="btn-wood" id="join-btn"    onclick="joinSelected()" disabled>Join</button>
+            <button class="btn-wood" id="join-btn" onclick="joinSelected()" disabled>Join</button>
             <button class="btn-wood" onclick="refreshLobbies()">Refresh</button>
             <button class="btn-wood" onclick="returnHome()">Return Home</button>
         </div>
-<div id="pregame-panel" style="display:none; flex-direction:column; flex:1; padding: 20px 24px; gap: 16px;">
 
-    <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:13px; letter-spacing:2px; color:#c4921a; text-transform:uppercase;">
-            Game Starting In
-        </span>
-        <span id="countdown-display" style="font-size:22px; font-weight:700; color:#d4a020; text-shadow: 0 0 12px rgba(200,150,20,0.5);">
-            10
-        </span>
-    </div>
+        <div id="pregame-panel" style="display:none; flex-direction:column; flex:1; padding:20px 24px; gap:16px;">
 
-<div id="game-view" style="display:none; flex-direction:column; flex:1; padding:20px 24px; gap:14px; overflow:hidden;">
-    <div style="font-size:11px; letter-spacing:3px; color:#c4921a; text-transform:uppercase;
-                border-bottom:1px solid #3e1c00; padding-bottom:8px;">
-        Debug Terminal
-    </div>
-    <div id="debug-terminal"
-         style="flex:1; overflow-y:auto; font-family:monospace; font-size:12px;
-                color:#8ab88a; line-height:1.9; white-space:pre; padding-right:4px;">
-        Waiting for role assignment…
-    </div>
-</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:13px; letter-spacing:2px; color:#c4921a; text-transform:uppercase;">
+                    Game Starting In
+                </span>
+                <span id="countdown-display" style="font-size:22px; font-weight:700; color:#d4a020; text-shadow:0 0 12px rgba(200,150,20,0.5);">
+                    10
+                </span>
+            </div>
+            <span id="pregame-rolelist-label" style="font-size:12px; color:#7a5a28; letter-spacing:1px;"></span>
 
-    <div id="pregame-player-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
-    </div>
+            <div id="game-view" style="display:none; flex-direction:column; flex:1; padding:20px 24px; gap:14px; overflow:hidden;">
+                <div style="font-size:11px; letter-spacing:3px; color:#c4921a; text-transform:uppercase; border-bottom:1px solid #3e1c00; padding-bottom:8px;">
+                    Debug Terminal
+                </div>
+                <div id="debug-terminal" style="flex:1; overflow-y:auto; font-family:monospace; font-size:12px; color:#8ab88a; line-height:1.9; white-space:pre; padding-right:4px;">
+                    Waiting for role assignment…
+                </div>
+            </div>
 
-    <div style="display:flex; gap:8px; align-items:center;">
-        <input
-            id="nickname-input"
-            class="modal-input"
-            type="text"
-            placeholder="Enter nickname…"
-            style="margin-bottom:0; flex:1;"
-            onkeydown="if(event.key==='Enter') submitNickname()"
-        >
-        <button class="btn-wood" onclick="submitNickname()" style="flex:0 0 auto; width:80px;">
-            Set Name
-        </button>
-        <button class="btn-wood" onclick="anonymousName()" style="flex:0 0 auto; width:100px;">
-            Anonymous
-        </button>
-    </div>
+            <div id="pregame-player-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
 
-    
-        <div id="pregame-host-controls" style="display:none; margin-top:6px; gap:8px;">
-    <button class="btn-wood" onclick="startGame()" style="flex:1; padding:11px; width:399px;">
-        Start Game
-    </button>
-    <button class="btn-wood" onclick="unlockLobby()" style="flex:1; padding:11px; width: 399px;">
-        Unlock Lobby
-    </button>
-</div>
-    </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="nickname-input" class="modal-input" type="text" placeholder="Enter nickname…"
+                    style="margin-bottom:0; flex:1;"
+                    onkeydown="if(event.key==='Enter') submitNickname()">
+                <button class="btn-wood" onclick="submitNickname()" style="flex:0 0 auto; width:80px;">Set Name</button>
+                <button class="btn-wood" onclick="anonymousName()" style="flex:0 0 auto; width:100px;">Anonymous</button>
+            </div>
 
-</div>
+            <div id="pregame-host-controls" style="display:none; flex-direction:column; gap:8px; margin-top:4px;">
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-wood" onclick="startGame()" style="flex:300;">Start Game</button>
+                    <button class="btn-wood" onclick="unlockLobby()" style="flex:300;">Unlock Lobby</button>
+                    <button class="btn-wood" onclick="openHostSettings()" style="flex:199; font-size:9px;">Host Settings</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="/static/js/lobby.js"></script>
+
 <div class="modal-overlay" id="create-modal">
     <div class="modal-box">
         <div class="modal-title">Create Lobby</div>
@@ -412,5 +114,100 @@
         </div>
     </div>
 </div>
+
+<div class="modal-overlay" id="host-settings-modal">
+    <div class="modal-box" style="width:500px; display:flex; flex-direction:column; max-height:85vh;">
+        <div class="modal-title">Host Settings</div>
+
+        <label class="modal-label">Lobby Name</label>
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <input class="modal-input" id="settings-lobby-name" type="text" placeholder="Lobby name…"
+                style="margin-bottom:0; flex:1;"
+                onkeydown="if(event.key==='Enter') renameLobby()">
+            <button class="btn-wood" onclick="renameLobby()" style="flex:0 0 auto; width:90px;">Rename</button>
+        </div>
+
+        <label class="modal-label">Role List</label>
+        <div id="settings-rolelist-options"
+             style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; margin-bottom:14px;"></div>
+
+        <button class="btn-wood" onclick="openCustomListModal()" style="width:100%; padding:10px; margin-bottom:6px;">
+            Build Custom Role List…
+        </button>
+
+        <div class="modal-footer" style="margin-top:8px;">
+            <button class="btn-wood" onclick="confirmHostSettings()">Apply</button>
+            <button class="btn-wood" onclick="closeHostSettings()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="custom-list-modal">
+    <div class="modal-box custom-list-box">
+        <div class="modal-title">Custom Role List</div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:11px; letter-spacing:1.5px; color:#7a5a28; text-transform:uppercase;">Slots defined</span>
+            <span id="custom-slot-counter" style="font-size:14px; color:#d4a020; font-weight:700;">0 slots</span>
+        </div>
+        <div id="custom-slot-warning"
+             style="display:none; font-size:11px; color:#c84848; letter-spacing:1px; margin-bottom:10px;
+                    padding:7px 12px; border:1px solid rgba(200,72,72,0.3); border-radius:2px; background:rgba(200,72,72,0.08);">
+            ⚠ Slot count exceeds player count. Remove slots or reduce the list.
+        </div>
+
+        <div class="custom-list-columns">
+
+            <div class="custom-list-left">
+                <div style="display:flex; gap:4px; margin-bottom:10px;">
+                    <button class="btn-wood section-tab active" onclick="switchSection('town')" id="tab-town">Town</button>
+                    <button class="btn-wood section-tab" onclick="switchSection('coven')" id="tab-coven">Coven</button>
+                    <button class="btn-wood section-tab" onclick="switchSection('any')" id="tab-any">Any</button>
+                </div>
+                <div id="custom-slot-list" class="custom-slot-list"></div>
+            </div>
+
+            <div class="custom-list-right">
+                <label class="modal-label">Slot Type</label>
+                <div class="custom-select" id="new-slot-type" style="margin-bottom:12px;">
+                    <div class="custom-select-trigger">Any</div>
+                    <ul class="custom-select-dropdown">
+                        <li data-value="pool">Specific Role</li>
+                        <li data-value="category">Category</li>
+                        <li data-value="random_town">Random Town</li>
+                        <li data-value="random_coven">Random Coven</li>
+                        <li data-value="common_town">Common Town</li>
+                        <li data-value="common_coven">Common Coven</li>
+                        <li data-value="any" class="selected">Any</li>
+                    </ul>
+                </div>
+
+                <div id="new-slot-detail" style="display:flex; flex-direction:column; gap:8px; flex:1;"></div>
+
+                <button class="btn-wood" onclick="addSlot()" style="width:100%; padding:9px; margin-top:12px; flex:0 0 auto;">
+                    + Add Slot
+                </button>
+            </div>
+
+        </div>
+
+        <div class="modal-footer" style="margin-top:16px;">
+            <button class="btn-wood" onclick="confirmCustomList()">Apply</button>
+            <button class="btn-wood" onclick="closeCustomListModal()">Cancel</button>
+            <button class="btn-wood" onclick="clearCustomList()" style="color:#e05050;">Clear All</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="rolelist-view-modal">
+    <div class="modal-box" style="width:400px; max-height:80vh; display:flex; flex-direction:column;">
+        <div class="modal-title">Role List</div>
+        <div id="rolelist-view-content" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+        <div class="modal-footer" style="margin-top:16px;">
+            <button class="btn-wood" onclick="document.getElementById('rolelist-view-modal').classList.remove('open')">Close</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

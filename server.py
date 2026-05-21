@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 from services.lobby_services import LobbyService
 from services.debug_services import DebugService
+from game.rolelists import load_rolelist_registry
 from game.state import GameState, Player
 from game.roles import load_role_registry
 from config import Config
@@ -25,6 +26,7 @@ game_state = GameState()
 game_state.role_registry = load_role_registry()
 discovery = None
 debug_service = DebugService()
+rolelist_registry = load_rolelist_registry("data/rolelists.toml")
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
@@ -38,7 +40,7 @@ console = Console()
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins='*')
 
 debug_events.register(socketio, debug_service)
-lobby_events.register(socketio, lobby_service, debug_service, game_state)
+lobby_events.register(socketio, lobby_service, debug_service, game_state, rolelist_registry)
 core_events.register(socketio, lobby_service, debug_service, console)
 
 @app.route('/')
@@ -48,6 +50,10 @@ def index():
 @app.route("/lobby")
 def lobby():
     return render_template("lobby.html")
+
+@app.route("/game")
+def game():
+    return render_template("game.html")
 
 @app.route("/debug")
 def debug():
@@ -70,6 +76,7 @@ def api_debug():
     return jsonify({
         "logs": debug_service.get_logs(),
         "lobbies": debug_service.get_lobby_data(lobby_service),
+        "game": debug_service.get_game_data(game_state),
         "audit": getattr(debug_service, "get_audit", lambda: [])()
     })
 
@@ -81,16 +88,14 @@ def reveal_role():
     if key != app.config["SECRET_KEY"]:
         return jsonify({"error": "Unauthorized"}), 401
 
+    player = game_state.get_player_by_sid(sid)
+    if player and player.role:
+        return jsonify({"role": player.role})
+
     for lobby in lobby_service.lobbies.values():
-        for player in lobby["players"]:
-            if player["sid"] == sid:
-                role = player.get("role", "No role assigned")
-                debug_service.log(
-                    "role_reveal",
-                    f"Role revealed for {player['name']}",
-                    {"sid": sid, "role": role}
-                )
-                return jsonify({"role": role})
+        for p in lobby["players"]:
+            if p["sid"] == sid:
+                return jsonify({"role": p.get("role") or "No role yet"})
 
     return jsonify({"error": "Not found"}), 404
 

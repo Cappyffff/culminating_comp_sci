@@ -60,3 +60,30 @@ button {
 .hidden {
     display: none;
 }
+
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #3a2a1a;
+    padding-bottom: 6px;
+}
+
+.tab-btn {
+    background: #1a1008;
+    color: #888;
+    border: 1px solid #3a2a1a;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.tab-btn.active {
+    background: #3a2a1a;
+    color: #e6d3b3;
+    border-color: #5a3a20;
+}
+
+.tab-content.hidden {
+    display: none;
+}

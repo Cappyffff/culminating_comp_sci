@@ -1,0 +1,196 @@
+# ─────────────────────────────────────────────
+#  BALANCED
+#  Predictable structure. Good for new players.
+# ─────────────────────────────────────────────
+[lists.balanced]
+name = "Balanced"
+description = "Predictable structure with guaranteed investigative, protective, killing, and power roles. Good for learning the game."
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Sheriff"
+
+[[lists.balanced.town]]
+type = "category"
+category = "Town Investigative"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Cleric"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Trapper"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Vigilante"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Deputy"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "Mayor"
+
+[[lists.balanced.town]]
+type = "specific"
+role = "TavernKeeper"
+
+[[lists.balanced.coven]]
+type = "specific"
+role = "Witch"
+
+[[lists.balanced.coven]]
+type = "specific"
+role = "Conjurer"
+
+[[lists.balanced.coven]]
+type = "random_coven"
+
+# ─────────────────────────────────────────────
+#  CHAOS
+#  Loose guarantees. Wilder, less predictable.
+# ─────────────────────────────────────────────
+[lists.chaos]
+name = "Chaos"
+description = "Minimal guarantees. Role draws are mostly random within faction and category. Expect unpredictable games."
+
+[[lists.chaos.town]]
+type = "category"
+category = "Town Investigative"
+
+[[lists.chaos.town]]
+type = "category"
+category = "Town Investigative"
+
+[[lists.chaos.town]]
+type = "category"
+category = "Town Protective"
+
+[[lists.chaos.town]]
+type = "category"
+category = "Town Killing"
+
+[[lists.chaos.town]]
+type = "category"
+category = "Town Power"
+
+[[lists.chaos.town]]
+type = "random_town"
+
+[[lists.chaos.town]]
+type = "random_town"
+
+[[lists.chaos.coven]]
+type = "category"
+category = "Coven Killing"
+
+[[lists.chaos.coven]]
+type = "random_coven"
+
+[[lists.chaos.any]]
+type = "any"
+
+# ─────────────────────────────────────────────
+#  COVEN DOMINANT
+#  Full coven cap guaranteed. Harder for town.
+# ─────────────────────────────────────────────
+[lists.coven_dominant]
+name = "Coven Dominant"
+description = "Guarantees the full coven cap of 4. Town has fewer guaranteed power roles. Harder for the town to win."
+
+[[lists.coven_dominant.town]]
+type = "specific"
+role = "Sheriff"
+
+[[lists.coven_dominant.town]]
+type = "category"
+category = "Town Investigative"
+
+[[lists.coven_dominant.town]]
+type = "category"
+category = "Town Protective"
+
+[[lists.coven_dominant.town]]
+type = "specific"
+role = "Vigilante"
+
+[[lists.coven_dominant.town]]
+type = "specific"
+role = "Mayor"
+
+[[lists.coven_dominant.town]]
+type = "random_town"
+
+[[lists.coven_dominant.town]]
+type = "random_town"
+
+[[lists.coven_dominant.coven]]
+type = "specific"
+role = "Witch"
+
+[[lists.coven_dominant.coven]]
+type = "specific"
+role = "Conjurer"
+
+[[lists.coven_dominant.coven]]
+type = "specific"
+role = "Ritualist"
+
+[[lists.coven_dominant.coven]]
+type = "random_coven"
+
+# ─────────────────────────────────────────────
+#  ALL ANY
+#  Every slot is random. No guarantees at all.
+# ─────────────────────────────────────────────
+[lists.all_any]
+name = "All Any"
+description = "Every slot draws from the full role pool. Coven cap still applies. Completely unpredictable."
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"
+
+[[lists.all_any.any]]
+type = "any"

@@ -225,8 +225,8 @@ astral = false
 roleblock_immune = true
 control_immune = false
 
-[roles.Wildling]
-name = "Wildling"
+[roles.Wilding]
+name = "Wilding"
 faction = "coven"
 category = "Coven Utility"
 attack = 0

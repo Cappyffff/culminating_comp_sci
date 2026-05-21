@@ -1,10 +1,18 @@
 import random
+from game.rolelists import resolve_rolelist
 
 
-def assign_roles(players, role_registry):
+def assign_roles(players, role_registry, list_config=None):
     player_count = len(players)
     if player_count < 2:
         raise ValueError(f"assign_roles requires at least 2 players, got {player_count}.")
+
+    if list_config is not None:
+        role_list = resolve_rolelist(list_config, player_count, role_registry)
+        return {
+            player["player_number"]: role_list[i]
+            for i, player in enumerate(players)
+        }
 
     town_roles  = [r for r in role_registry.values() if r["faction"] == "town"]
     coven_roles = [r for r in role_registry.values() if r["faction"] == "coven"]

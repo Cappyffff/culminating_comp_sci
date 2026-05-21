@@ -39,3 +39,27 @@ class DebugService:
             })
 
         return lobbies
+
+    def get_game_data(self, game_state):
+        if not game_state.players:
+            return None
+
+        players = []
+        for p in game_state.players.values():
+            players.append({
+                "player_number": p.player_number,
+                "sid": p.sid,
+                "nickname": p.nickname,
+                "role": p.role,
+                "alignment": p.alignment,
+                "alive": p.alive,
+                "current_attack": p.current_attack,
+                "current_defense": p.current_defense,
+                "status_effects": p.status_effects,
+            })
+
+        return {
+            "phase": game_state.phase,
+            "phase_number": game_state.phase_number,
+            "players": players,
+        }
