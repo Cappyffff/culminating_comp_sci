@@ -1,33 +1,23 @@
 from flask import request
 from flask_socketio import emit
 
-def register(socketio, lobby_service, debug_service, console):
+def register(socketio, lobby_service, debug_service, console, game_state):
 
     @socketio.on('connect')
     def handle_connect(auth=None):
-        console.print(
-            f"[CONNECT] Client connected: {request.sid}"
-        )
+        console.print(f"[CONNECT] Client connected: {request.sid}")
+        debug_service.log("connect", f"Client connected: {request.sid}")
 
-        debug_service.log(
-            "connect",
-            f"Client connected: {request.sid}"
-        )
+        emit('connection_ack', {'sid': request.sid, 'message': 'Connected to server'}, to=request.sid)
+        socketio.emit("lobby_list", lobby_service.list_lobbies(), to=request.sid)
 
-        emit(
-            'connection_ack',
-            {
-                'sid': request.sid,
-                'message': 'Connected to server'
-            },
-            to=request.sid
-        )
-
-        socketio.emit(
-            "lobby_list",
-            lobby_service.list_lobbies(),
-            to=request.sid
-        )
+        if game_state.phase not in ("lobby", ""):
+            emit("game_state_update", game_state.to_public_dict(), to=request.sid)
+            emit("phase_change", {
+                "phase":     game_state.phase,
+                "sub_phase": game_state.sub_phase,
+                "duration":  0,
+            }, to=request.sid)
 
     @socketio.on('disconnect')
     def handle_disconnect(reason=None):

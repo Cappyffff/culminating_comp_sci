@@ -15,12 +15,21 @@ class Player:
         self.current_defense = 0
 
         self.status_effects = []
-        self.permanant_effects = []
+        self.permanent_effects = []
 
         self.night_action_submitted = False
         self.detection_immunity = False
         self.roleblock_immune = False
         self.control_immune = False
+        self.charges     = -1
+        self.vote_weight = 1
+
+        #FOR NE (best roles I love pirate so much maybe not exe tho icl)
+        self.has_won         = False
+        self.left_town       = False
+        self.exe_target      = None   
+        self.ll_targets      = []     
+        self.plunder_disabled = False 
 
     def to_dict(self):
         return {
@@ -39,7 +48,7 @@ class Player:
             "current_attack": self.current_attack,
             "current_defense": self.current_defense,
             "status_effects": self.status_effects,
-            "permanant_effects": self.permanant_effects,
+            "permanent_effects": self.permanent_effects,
         }
 
 
@@ -50,6 +59,20 @@ class GameState:
         self.phase_number = 0
         self.role_registry = {}
         self.locked = False
+        self.day_number   = 0
+        self.trials_used  = 0
+        self.on_trial     = None  
+        self.votes        = {}    
+        self.verdicts     = {}    
+        self.sub_phase = ""
+        self.lobby_id = None
+        self.night_actions   = {} 
+        self.pending_feedback = {} 
+        self.sub_phase = ""
+        self.lobby_id  = None
+        self.pending_retrains = {}
+        self.max_trials    = 3
+        self.jester_haunts = {} 
 
     def get_living_players(self):
         return [p for p in self.players.values() if p.alive]
@@ -62,7 +85,14 @@ class GameState:
 
     def to_public_dict(self):
         return {
-            "phase": self.phase,
-            "phase_number": self.phase_number,
-            "players": [p.to_dict() for p in self.players.values()],
+            "phase":      self.phase,
+            "sub_phase":  self.sub_phase,
+            "day_number": self.day_number,
+            "players":    [p.to_dict() for p in self.players.values()],
         }
+    
+    def get_role_data(self, role_name):
+        for data in self.role_registry.values():
+            if data["name"] == role_name:
+                return data
+        return {}

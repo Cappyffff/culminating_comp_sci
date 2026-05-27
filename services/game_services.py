@@ -25,18 +25,26 @@ def assign_roles(players, role_registry, list_config=None):
     random.shuffle(coven_pool)
     selected_coven = coven_pool[:coven_count]
 
-    unique_town     = [r for r in town_roles if r.get("unique")]
-    repeatable_town = [r for r in town_roles if not r.get("unique")]
+    all_town = town_roles.copy()
+    random.shuffle(all_town)
 
-    random.shuffle(unique_town)
-    random.shuffle(repeatable_town)
-
-    town_pool = unique_town[:town_count]
+    town_pool = []
+    used_unique_names = set()
+    for role in all_town:
+        if len(town_pool) >= town_count:
+            break
+        if role.get("unique"):
+            if role["name"] in used_unique_names:
+                continue
+            used_unique_names.add(role["name"])
+        town_pool.append(role)
 
     remaining = town_count - len(town_pool)
     if remaining > 0:
+        repeatable_town = [r for r in town_roles if not r.get("unique")]
         if not repeatable_town:
             raise ValueError("Not enough repeatable Town roles to fill the remaining slots.")
+        random.shuffle(repeatable_town)
         for i in range(remaining):
             town_pool.append(repeatable_town[i % len(repeatable_town)])
 

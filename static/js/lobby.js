@@ -9,13 +9,10 @@ let availableRoleLists  = {};
 let selectedRoleListKey = null;
 let currentRoleListConfig = null;
 
-
-// Custom list builder state
 let customList        = { town: [], coven: [], any: [] };
 let currentSection    = "town";
 let currentPlayerCount = 15;
 
-// Role/category data for builder dropdowns
 const ROLE_KEYS = [
     "Sheriff","Tracker","Psychic","Deputy","Vigilante","Mayor","Prosecutor",
     "Cleric","Trapper","Socialite","TavernKeeper",
@@ -28,7 +25,6 @@ const CATEGORIES = [
     "Coven Deception","Coven Killing","Coven Power","Coven Utility"
 ];
 
-// ─── Lobby state ──────────────────────────────────────────────────────────────
 
 function createCustomSelect(id, className, options) {
     const wrapper = document.createElement("div");
@@ -94,7 +90,6 @@ function showPregame() {
     }
 }
 
-// ─── Player list ──────────────────────────────────────────────────────────────
 
 function renderPregamePlayers(players) {
     currentPlayerCount = players.length;
@@ -120,8 +115,6 @@ function renderPregamePlayers(players) {
         container.appendChild(div);
     });
 }
-
-// ─── Lobby actions ────────────────────────────────────────────────────────────
 
 function openModal() {
     const modal = document.getElementById("create-modal");
@@ -190,7 +183,6 @@ function kickPlayer(playerNumber) {
     socket.emit("kick_player", { lobby_id: currentLobbyId, player_number: playerNumber });
 }
 
-// ─── Nickname ─────────────────────────────────────────────────────────────────
 
 const ANONYMOUS_NAMES = [
     "Cotton Mather","Deodat Lawson","Edward Bishop","Giles Corey",
@@ -217,7 +209,6 @@ function submitNickname() {
     input.value = "";
 }
 
-// ─── Debug terminal ───────────────────────────────────────────────────────────
 
 function renderDebugTerminal(d) {
     const flag = v =>
@@ -251,7 +242,6 @@ Roleblock Immune: ${flag(d.roleblock_immune)}
 Control Immune  : ${flag(d.control_immune)}`;
 }
 
-// ─── Host Settings modal ──────────────────────────────────────────────────────
 
 function openHostSettings() {
     socket.emit("request_rolelists");
@@ -265,7 +255,6 @@ function closeHostSettings() {
 }
 
 function confirmHostSettings() {
-    // Apply the selected preset list
     socket.emit("set_role_list", { lobby_id: currentLobbyId, list_key: selectedRoleListKey });
     closeHostSettings();
 }
@@ -301,10 +290,9 @@ function renderSettingsRoleList() {
     });
 }
 
-// ─── Custom list builder ──────────────────────────────────────────────────────
 
 function openCustomListModal() {
-    closeHostSettings();  // close settings first so modals don't stack visually
+    closeHostSettings();  
     currentSection = "town";
     updateSectionTabs();
     document.getElementById("new-slot-type").value = "any";
@@ -432,7 +420,6 @@ function renderSlotDetailInput() {
         container.appendChild(createCustomSelect("slot-category", "modal-select", CATEGORIES));
 
     } else {
-        // random_town / random_coven / common_town / common_coven / any — no extra input
         const note = document.createElement("span");
         note.style.cssText = "font-size:11px; color:#5a4a28; letter-spacing:1px; font-style:italic;";
         const descriptions = {
@@ -515,7 +502,26 @@ function confirmCustomList() {
     closeCustomListModal();
 }
 
-// ─── Socket events ────────────────────────────────────────────────────────────
+function voteRoleList(key) {
+    if (!currentLobbyId) return;
+    socket.emit("vote_role_list", { lobby_id: currentLobbyId, list_key: key });
+}
+
+function renderVoteTally(votes) {
+    const container = document.getElementById("pregame-vote-tally");
+    if (!container) return;
+    container.innerHTML = "";
+    if (Object.keys(votes).length === 0) {
+        container.innerHTML = "<span>No votes yet</span>";
+        return;
+    }
+    Object.entries(votes).forEach(([key, count]) => {
+        const name = availableRoleLists[key]?.name ?? key ?? "Random";
+        const div = document.createElement("div");
+        div.textContent = `${name}: ${count} vote${count !== 1 ? "s" : ""}`;
+        container.appendChild(div);
+    });
+}
 
 socket.on("connect", () => {
     const el = document.getElementById("status");
@@ -687,4 +693,8 @@ document.addEventListener("DOMContentLoaded", () => {
             onSlotTypeChange();
         });
     });
+});
+
+socket.on("vote_update", (data) => {
+    renderVoteTally(data.votes);
 });

@@ -4,12 +4,13 @@ from services.game_services import assign_roles
 from flask import request
 
 
-def register(socketio, lobby_service, debug_service, game_state, rolelist_registry):
+def register(socketio, lobby_service, debug_service, game_state, rolelist_registry, run_game_loop):
 
     def countdown(lobby_id):
         for i in range(10, -1, -1):
-            socketio.emit("pregame_tick", {"seconds": i}, to=lobby_id)
-            socketio.sleep(1)
+            socketio.emit("pregame_end", {}, to=lobby_id)
+            socketio.emit("game_start",  {}, to=lobby_id)
+            socketio.start_background_task(run_game_loop, lobby_id)
 
         lobby = lobby_service.get_lobby(lobby_id)
         if not lobby:
@@ -19,7 +20,7 @@ def register(socketio, lobby_service, debug_service, game_state, rolelist_regist
         if lobby.get("custom_list") is not None:
             list_config = lobby["custom_list"]
         else:
-            list_key    = lobby.get("selected_list")
+            list_key    = lobby_service.get_vote_winner(lobby_id)
             list_config = rolelist_registry.get(list_key) if list_key else None
 
         try:
@@ -49,6 +50,8 @@ def register(socketio, lobby_service, debug_service, game_state, rolelist_regist
             player.roleblock_immune = role_data["roleblock_immune"]
             player.control_immune   = role_data["control_immune"]
             game_state.players[pnum] = player
+            player.charges     = role_data["charges"]
+            player.vote_weight = 1
 
             socketio.emit("role_assigned", {
                 "player_number":       pnum,
@@ -291,3 +294,20 @@ def register(socketio, lobby_service, debug_service, game_state, rolelist_regist
             debug_service.log("lobby", f"Player #{target_number} kicked from {lobby_id} by host")
         else:
             emit("lobby_error", {"message": "Could not kick player."}, to=request.sid)
+
+    @socketio.on("vote_role_list")
+    def vote_role_list(data):
+        lobby_id = data.get("lobby_id")
+        list_key = data.get("list_key")
+
+        if not lobby_id:
+            return
+
+        if list_key is not None and list_key not in rolelist_registry:
+            emit("lobby_error", {"message": f"Unknown role list '{list_key}'."}, to=request.sid)
+            return
+
+        success = lobby_service.vote_role_list(lobby_id, request.sid, list_key)
+        if success:
+            tally = lobby_service.get_vote_tally(lobby_id)
+            socketio.emit("vote_update", {"votes": tally}, to=lobby_id)

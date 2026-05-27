@@ -10,17 +10,17 @@ class LobbyService:
             if lobby["host_sid"] == sid:
                 return None
 
-        lobby_id = str(uuid.uuid4())
         self.lobbies[lobby_id] = {
             "host_sid":     sid,
             "host":         name,
             "lobby_name":   lobby_name or f"{name}'s game",
             "locked":       False,
-            "players":      [{"sid": sid, "name": name, "username": username, "player_number": 1}],
+            "players":      [...],
             "next_number":  2,
             "free_numbers": [],
             "selected_list":  None,
             "custom_list":    None,
+            "list_votes":     {},
         }
         return lobby_id
 
@@ -147,3 +147,37 @@ class LobbyService:
             }
             for lid, lobby in self.lobbies.items()
         ]
+
+    def vote_role_list(self, lobby_id, sid, list_key):
+        if lobby_id not in self.lobbies:
+            return False
+        lobby = self.lobbies[lobby_id]
+        if list_key is None:
+            lobby["list_votes"].pop(sid, None)
+        else:
+            lobby["list_votes"][sid] = list_key
+        return True
+
+    def get_vote_tally(self, lobby_id):
+        lobby = self.lobbies.get(lobby_id)
+        if not lobby:
+            return {}
+        tally = {}
+        for key in lobby.get("list_votes", {}).values():
+            tally[key] = tally.get(key, 0) + 1
+        return tally
+
+    def get_vote_winner(self, lobby_id):
+        import random
+        lobby = self.lobbies.get(lobby_id)
+        if not lobby:
+            return None
+        votes = lobby.get("list_votes", {})
+        if not votes:
+            return lobby.get("selected_list")
+        tally = {}
+        for key in votes.values():
+            tally[key] = tally.get(key, 0) + 1
+        top = max(tally.values())
+        winners = [k for k, v in tally.items() if v == top]
+        return random.choice(winners)

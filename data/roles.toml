@@ -281,3 +281,61 @@ astral = false
 roleblock_immune = false
 control_immune = false
 
+
+#------------------------------------ Neutral Evil ---------------------------------------
+
+[roles.Jester]
+name = "Jester"
+faction = "neutral"
+category = "Neutral Evil"
+attack = 0
+defense = 1
+ability_type = "night"
+ability_description = "Get yourself lynched to win. After being lynched, haunt one of the players who voted guilty."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Executioner]
+name = "Executioner"
+faction = "neutral"
+category = "Neutral Evil"
+attack = 0
+defense = 1
+ability_type = "none"
+ability_description = "Get your assigned target lynched to win. If your target dies another way, you become a Jester."
+charges = -1
+unique = true
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Doomsayer]
+name = "Doomsayer"
+faction = "neutral"
+category = "Neutral Evil"
+attack = 0
+defense = 1
+ability_type = "night"
+ability_description = "Each night, guess the roles of 3 different players. If all 3 are correct in the same night, they are doomed and will die the following night."
+charges = -1
+unique = false
+astral = false
+roleblock_immune = false
+control_immune = false
+
+[roles.Pirate]
+name = "Pirate"
+faction = "neutral"
+category = "Neutral Evil"
+attack = 1
+defense = 1
+ability_type = "night"
+ability_description = "Scour a player to see if they are a landlubber. Plunder a landlubber for a basic attack (3 charges). Plundering a non-landlubber permanently revokes plunder. Win when all landlubbers are dead."
+charges = 3
+unique = true
+astral = false
+roleblock_immune = true
+control_immune = false

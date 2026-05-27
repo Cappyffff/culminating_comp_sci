@@ -20,6 +20,8 @@ from network import LANDiscovery
 from events import debug as debug_events
 from events import lobby as lobby_events
 from events import core as core_events
+from events import game as game_events
+from events import chat as chat_events
 
 lobby_service = LobbyService()
 game_state = GameState()
@@ -39,9 +41,12 @@ app.config.from_object(Config)
 console = Console()
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins='*')
 
+run_game_loop = game_events.register(socketio, game_state, debug_service)
+
+chat_events.register(socketio, game_state, debug_service)
 debug_events.register(socketio, debug_service)
-lobby_events.register(socketio, lobby_service, debug_service, game_state, rolelist_registry)
-core_events.register(socketio, lobby_service, debug_service, console)
+lobby_events.register(socketio, lobby_service, debug_service, game_state, rolelist_registry, run_game_loop)
+core_events.register(socketio, lobby_service, debug_service, console, game_state)
 
 @app.route('/')
 def index():
