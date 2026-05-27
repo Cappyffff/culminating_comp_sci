@@ -8,9 +8,8 @@ def register(socketio, lobby_service, debug_service, game_state, rolelist_regist
 
     def countdown(lobby_id):
         for i in range(10, -1, -1):
-            socketio.emit("pregame_end", {}, to=lobby_id)
-            socketio.emit("game_start",  {}, to=lobby_id)
-            socketio.start_background_task(run_game_loop, lobby_id)
+            socketio.emit("pregame_tick", {"seconds": i}, to=lobby_id)
+            socketio.sleep(1)
 
         lobby = lobby_service.get_lobby(lobby_id)
         if not lobby:
@@ -83,9 +82,9 @@ def register(socketio, lobby_service, debug_service, game_state, rolelist_regist
 
         for p in coven_players:
             socketio.emit("coven_reveal", {"coven": coven_list}, to=p.sid, namespace="/")
-
+        socketio.start_background_task(run_game_loop, lobby_id)
         socketio.emit("pregame_end", {}, to=lobby_id)
-        socketio.emit("game_start",  {}, to=lobby_id)
+        socketio.emit("game_start", {"lobby_id": lobby_id}, to=lobby_id)
 
     @socketio.on("create_lobby")
     def create_lobby(data):

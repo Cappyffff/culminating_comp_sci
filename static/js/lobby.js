@@ -542,11 +542,13 @@ socket.on("role_assigned", (data) => {
     if (gv && gv.style.display === "flex") renderDebugTerminal(data);
 });
 
-socket.on("game_start", () => {
-    socket.on("coven_reveal", (data) => {
-        sessionStorage.setItem("covenData", JSON.stringify(data));
-    });
+socket.on("coven_reveal", (data) => {
+    sessionStorage.setItem("covenData", JSON.stringify(data));
+});
+
+socket.on("game_start", (data) => {
     if (myRoleData) sessionStorage.setItem("roleData", JSON.stringify(myRoleData));
+    if (data.lobby_id) sessionStorage.setItem("lobbyId", data.lobby_id);
     window.location.href = "/game";
 });
 

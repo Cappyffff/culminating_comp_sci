@@ -294,7 +294,7 @@ body {
 }
 
 .player-list-panel {
-    flex: 1;
+    flex: 0 0 200px;
     min-height: 0;
 }
 
@@ -471,3 +471,106 @@ body {
 
 body.night-phase { background: #020108; }
 body.night-phase .bg { filter: brightness(0.5) hue-rotate(200deg); }
+
+.chat-panel {
+    flex: 1;
+    min-height: 0;
+}
+
+.chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 0;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: #0e0600; }
+.chat-messages::-webkit-scrollbar-thumb { background: #5a2e08; border-radius: 3px; }
+
+.chat-msg {
+    font-size: 12px;
+    color: #c8b488;
+    line-height: 1.5;
+}
+.chat-msg .chat-sender {
+    color: #a87828;
+    font-size: 10px;
+    margin-right: 6px;
+}
+.chat-msg.coven-msg   { color: #b06adf; }
+.chat-msg.ne-departure { color: #7a6040; font-style: italic; font-size: 11px; }
+.chat-msg.doom-msg    { color: #cc4444; }
+.chat-msg.system-msg  { color: #c4921a; font-style: italic; font-size: 11px; }
+
+.chat-input-row {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 5px;
+    padding: 6px 8px;
+    border-top: 1px solid #2e1400;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 6px 9px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: #e8d090;
+    background: #0a0400;
+    border: 1px solid #5a3010;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+#chat-input:focus       { border-color: #a87828; }
+#chat-input::placeholder { color: #3a2810; }
+#chat-input:disabled    { opacity: 0.3; cursor: not-allowed; }
+
+.vote-panel, .verdict-panel {
+    flex: 0 0 auto;
+}
+.vote-body, .verdict-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vote-tally, .verdict-tally {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    color: #a87828;
+}
+.vote-tally-row { letter-spacing: 1px; }
+.verdict-btns {
+    display: flex;
+    gap: 6px;
+}
+.btn-guilty   { flex:1; padding:8px; background:#5a1818; border:1px solid #8a2828; color:#e88080; font-family:'Cinzel',serif; font-size:10px; letter-spacing:1px; cursor:pointer; border-radius:2px; }
+.btn-innocent { flex:1; padding:8px; background:#183a18; border:1px solid #286028; color:#80c880; font-family:'Cinzel',serif; font-size:10px; letter-spacing:1px; cursor:pointer; border-radius:2px; }
+.btn-abstain  { flex:1; padding:8px; background:#282818; border:1px solid #505028; color:#c8c880; font-family:'Cinzel',serif; font-size:10px; letter-spacing:1px; cursor:pointer; border-radius:2px; }
+.v-guilty   { color: #e88080; margin-right: 10px; }
+.v-innocent { color: #80c880; margin-right: 10px; }
+.v-abstain  { color: #c8c880; }
+
+.player-entry .prole {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.player-entry .prole.coven    { color: #b06adf; }
+.player-entry .prole.revealed { color: #c4921a; }
+
+.day-ability-panel { flex: 0 0 auto; }

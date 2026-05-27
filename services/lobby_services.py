@@ -10,12 +10,13 @@ class LobbyService:
             if lobby["host_sid"] == sid:
                 return None
 
+        lobby_id = str(uuid.uuid4())
         self.lobbies[lobby_id] = {
             "host_sid":     sid,
             "host":         name,
             "lobby_name":   lobby_name or f"{name}'s game",
             "locked":       False,
-            "players":      [...],
+            "players":      [{"sid": sid, "name": name, "username": username, "player_number": 1}],
             "next_number":  2,
             "free_numbers": [],
             "selected_list":  None,

@@ -13,7 +13,7 @@ def check_win_conditions(game_state):
     if len(coven) == 0:
         return "town"
 
-    if len(coven) >= len(town):
+    if len(town) == 0:
         return "coven"
 
     return None

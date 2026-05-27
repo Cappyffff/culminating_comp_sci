@@ -70,16 +70,19 @@
                 <div class="player-placeholder">No deaths yet</div>
             </div>
         </div>
+                <div class="panel feedback-panel" id="feedback-panel" style="display:none">
+            <span class="corner corner-tl">✦</span>
+            <span class="corner corner-tr">✦</span>
+            <span class="corner corner-bl">✦</span>
+            <span class="corner corner-br">✦</span>
+            <div class="panel-titlebar">
+                <span class="panel-title">Last Night</span>
+            </div>
+            <div id="feedback-list" class="feedback-body"></div>
+        </div>
 
     </div>
 
-<div id="action-panel" style="display:none">
-</div>
-
-<div id="feedback-panel" style="display:none">
-    <div class="feedback-header">Last Night's Results</div>
-    <div id="feedback-list"></div>
-</div>
     <div class="col-centre">
 
         <div class="panel phase-bar">
@@ -109,10 +112,60 @@
                 <div class="player-placeholder">Waiting for players…</div>
             </div>
         </div>
+                <div class="panel chat-panel">
+            <span class="corner corner-tl">✦</span>
+            <span class="corner corner-tr">✦</span>
+            <span class="corner corner-bl">✦</span>
+            <span class="corner corner-br">✦</span>
+            <div class="panel-titlebar">
+                <span class="panel-title">Town</span>
+            </div>
+            <div class="chat-body">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-input-row">
+                    <input id="chat-input" type="text" placeholder="Message town…" disabled
+                           onkeydown="if(event.key==='Enter') sendMessage()">
+                    <button class="btn-wood" id="chat-send-btn" onclick="sendMessage()" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel vote-panel" id="vote-panel" style="display:none">
+            <span class="corner corner-tl">✦</span>
+            <span class="corner corner-tr">✦</span>
+            <span class="corner corner-bl">✦</span>
+            <span class="corner corner-br">✦</span>
+            <div class="panel-titlebar">
+                <span class="panel-title">Vote</span>
+                <span id="vote-threshold" style="font-family:monospace;font-size:11px;color:#4a3a1a;"></span>
+            </div>
+            <div class="vote-body">
+                <div id="vote-player-list"></div>
+                <button class="btn-wood" onclick="castVote(null)" style="margin-top:6px;">Unvote</button>
+                <div id="vote-tally" class="vote-tally"></div>
+            </div>
+        </div>
+
+        <div class="panel verdict-panel" id="verdict-panel" style="display:none">
+            <span class="corner corner-tl">✦</span>
+            <span class="corner corner-tr">✦</span>
+            <span class="corner corner-bl">✦</span>
+            <span class="corner corner-br">✦</span>
+            <div class="panel-titlebar">
+                <span class="panel-title">Verdict</span>
+            </div>
+            <div class="verdict-body">
+                <div class="verdict-btns">
+                    <button class="btn-guilty"   onclick="castVerdict('guilty')">Guilty</button>
+                    <button class="btn-innocent" onclick="castVerdict('innocent')">Innocent</button>
+                    <button class="btn-abstain"  onclick="castVerdict('abstain')">Abstain</button>
+                </div>
+                <div id="verdict-tally" class="verdict-tally"></div>
+            </div>
+        </div>
 
     </div>
 
-    <!-- RIGHT: Action panel + coven chat -->
     <div class="col-right">
 
         <div class="panel action-panel">
@@ -123,30 +176,18 @@
             <div class="panel-titlebar">
                 <span class="panel-title">Action</span>
             </div>
-            <div class="action-body">
-                <div class="action-placeholder">No action available</div>
+                        <div id="action-panel" class="action-body" style="display:none">
             </div>
         </div>
-
-        <div class="panel coven-chat-panel" id="coven-chat-panel" style="display:none;">
+        <div class="panel day-ability-panel" id="day-ability-panel" style="display:none">
             <span class="corner corner-tl">✦</span>
             <span class="corner corner-tr">✦</span>
             <span class="corner corner-bl">✦</span>
             <span class="corner corner-br">✦</span>
             <div class="panel-titlebar">
-                <span class="panel-title" style="color:#b06adf;">Coven</span>
+                <span class="panel-title">Day Ability</span>
             </div>
-            <div class="coven-chat-body">
-                <div class="coven-messages" id="coven-messages">
-                    <div class="coven-msg-placeholder">Night only</div>
-                </div>
-                <div class="coven-input-row">
-                    <input class="coven-input" id="coven-input" type="text"
-                           placeholder="Message coven…" disabled
-                           onkeydown="if(event.key==='Enter') sendCovenMessage()">
-                    <button class="btn-wood" onclick="sendCovenMessage()" id="coven-send-btn" disabled>Send</button>
-                </div>
-            </div>
+            <div id="day-ability-body" class="action-body"></div>
         </div>
 
     </div>

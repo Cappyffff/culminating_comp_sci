@@ -3,6 +3,8 @@ let myPlayerNumber = null;
 let isCoven = false;
 let myRoleInfo = null;
 let myLandlubbers = [];
+let covenRoles   = {};
+let revealedLiving = {};
 
 const stored = sessionStorage.getItem("roleData");
 if (stored) {
@@ -186,6 +188,82 @@ function submitAction() {
     });
 }
 
+let selectedDayTarget = null;
+
+function buildVotePanel(players) {
+    const list = document.getElementById("vote-player-list");
+    if (!list) return;
+    list.innerHTML = "";
+    players.filter(p => p.alive && p.player_number !== myPlayerNumber).forEach(p => {
+        const btn = document.createElement("button");
+        btn.className = "action-target-btn vote-btn";
+        btn.dataset.pnum = p.player_number;
+        btn.textContent = `#${p.player_number} ${p.nickname}`;
+        btn.onclick = () => {
+            list.querySelectorAll(".vote-btn").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            castVote(p.player_number);
+        };
+        list.appendChild(btn);
+    });
+}
+
+function castVote(target) {
+    socket.emit("cast_vote", { target });
+}
+
+function castVerdict(verdict) {
+    socket.emit("cast_verdict", { verdict });
+}
+
+function buildDayAbilityPanel(players) {
+    const body = document.getElementById("day-ability-body");
+    if (!body || !myRoleInfo) return;
+    const role   = myRoleInfo.role;
+    const living = players.filter(p => p.alive && p.player_number !== myPlayerNumber);
+    body.innerHTML = "";
+
+    if (role === "Mayor") {
+        body.innerHTML = `
+            <div class="action-label">Reveal yourself as Mayor to gain 3 votes.</div>
+            <div class="action-buttons">
+                <button class="btn-wood" onclick="useDayAbility(null)">Reveal</button>
+            </div>
+            <div id="day-ability-status"></div>
+        `;
+        return;
+    }
+
+    body.innerHTML = `<div class="action-label">Choose a target:</div>`;
+    const list = document.createElement("div");
+    list.id = "day-ability-target-list";
+    living.forEach(p => {
+        const btn = document.createElement("button");
+        btn.className = "action-target-btn";
+        btn.dataset.pnum = p.player_number;
+        btn.textContent = `#${p.player_number} ${p.nickname}`;
+        btn.onclick = () => {
+            list.querySelectorAll(".action-target-btn").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedDayTarget = p.player_number;
+        };
+        list.appendChild(btn);
+    });
+    body.appendChild(list);
+
+    const label = role === "Deputy" ? "Shoot" : role === "Conjurer" ? "Conjure" : "Prosecute";
+    body.insertAdjacentHTML("beforeend", `
+        <div class="action-buttons">
+            <button class="btn-wood" onclick="useDayAbility(selectedDayTarget)">${label}</button>
+        </div>
+        <div id="day-ability-status"></div>
+    `);
+}
+
+function useDayAbility(target) {
+    socket.emit("use_day_ability", { target });
+}
+
 function submitDoomAction() {
     const guesses = [];
     for (let i = 1; i <= 3; i++) {
@@ -216,6 +294,7 @@ function skipAction() {
 function applyRoleData(d) {
     myRoleInfo = d;
     myPlayerNumber = d.player_number;
+    sessionStorage.setItem("myPlayerNumber", d.player_number);
 
     document.getElementById("player-label").innerText = `#${d.player_number} · ${d.nickname}`;
     document.getElementById("rc-name").innerText      = d.role;
@@ -265,8 +344,7 @@ Control Immune  : ${flag(d.control_immune)}`;
 
 function showCovenPanel(covenList) {
     isCoven = true;
-    document.getElementById("coven-chat-panel").style.display = "flex";
-
+    covenList.forEach(p => { covenRoles[p.player_number] = p.role; });
     const names = covenList.map(p => `#${p.player_number} ${p.nickname} (${p.role})`).join(", ");
     const term = document.getElementById("debug-terminal");
     term.innerHTML += `\n\n<span style="color:#c4921a">── COVEN ────────────────────────────</span>\n${names}`;
@@ -283,7 +361,12 @@ function renderPlayerList(players) {
         div.className = "player-entry" +
             (p.alive ? "" : " dead") +
             (p.player_number === myPlayerNumber ? " me" : "");
-        div.innerHTML = `<span class="pnum">#${p.player_number}</span><span>${p.nickname}</span>`;
+        const roleTag = covenRoles[p.player_number]
+            ? `<span class="prole coven">${covenRoles[p.player_number]}</span>`
+            : revealedLiving[p.player_number]
+            ? `<span class="prole revealed">${revealedLiving[p.player_number]}</span>`
+            : "";
+        div.innerHTML = `<span class="pnum">#${p.player_number}</span><span>${p.nickname}</span>${roleTag}`;
         container.appendChild(div);
     });
 }
@@ -333,9 +416,18 @@ function sendMessage() {
     const input = document.getElementById("chat-input");
     const msg   = input.value.trim();
     if (!msg) return;
-    socket.emit("send_message", { message: msg });
+    const isNight = document.body.classList.contains("night-phase");
+    socket.emit(isNight && isCoven ? "coven_chat" : "send_message", { message: msg });
     input.value = "";
 }
+
+socket.on("connect", () => {
+    const lobbyId      = sessionStorage.getItem("lobbyId");
+    const playerNumber = parseInt(sessionStorage.getItem("myPlayerNumber"));
+    if (lobbyId) {
+        socket.emit("rejoin_game", { lobby_id: lobbyId, player_number: playerNumber || null });
+    }
+});
 
 socket.on("role_assigned", (data) => {
     applyRoleData(data);
@@ -353,46 +445,16 @@ socket.on("game_state_update", (data) => {
     if (data.phase) document.getElementById("phase-label").innerText = data.phase;
 });
 
-socket.on("phase_change", (data) => {
-    document.getElementById("phase-label").innerText = data.phase    || "—";
-    document.getElementById("phase-sub").innerText   = data.sub_phase || "—";
-    document.getElementById("phase-timer").innerText = data.duration  || "—";
-
-    if (isCoven) {
-        document.getElementById("coven-input").disabled    = !isNight;
-        document.getElementById("coven-send-btn").disabled = !isNight;
-    }
-    const isNight = phase.toLowerCase().includes("night");
-    const panel   = document.getElementById("action-panel");
-
-    if (isNight && sub === "") {
-        selectedTargets = { target: null, target2: null };
-        if (panel) panel.style.display = "";
-        const currentPlayers = Array.from(
-            document.querySelectorAll(".player-entry")
-        ).map(el => ({
-            player_number: parseInt(el.querySelector(".pnum").textContent.replace("#","")),
-            nickname: el.querySelector("span:last-child").textContent,
-            alive: !el.classList.contains("dead"),
-        }));
-        buildActionPanel(currentPlayers);
-    } else {
-        if (panel) panel.style.display = "none";
-    }
-});
-
 socket.on("phase_tick", (data) => {
     document.getElementById("phase-timer").innerText = data.seconds;
 });
 
 socket.on("coven_message", (data) => {
-    const container = document.getElementById("coven-messages");
-    const placeholder = container.querySelector(".coven-msg-placeholder");
-    if (placeholder) placeholder.remove();
-
+    const container = document.getElementById("chat-messages");
+    if (!container) return;
     const div = document.createElement("div");
-    div.className = "coven-msg";
-    div.innerHTML = `<span class="coven-sender">#${data.player_number}</span>${data.message}`;
+    div.className = "chat-msg coven-msg";
+    div.innerHTML = `<span class="chat-sender">#${data.player_number}</span>${data.message}`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 });
@@ -443,22 +505,65 @@ socket.on("phase_change", (data) => {
         accusedPlayerNumber = null;
     }
 
-    const isAccused    = myPlayerNumber === accusedPlayerNumber;
-    const blocked      = ["voting", "verdict", "silence"];
-    const canTownTalk  = !isNight
+        const isAccused   = myPlayerNumber === accusedPlayerNumber;
+    const blocked     = ["voting", "verdict", "silence"];
+    const canTownChat = !isNight
         && !blocked.includes(sub)
         && (sub !== "defense"    || isAccused)
         && (sub !== "last_words" || isAccused);
-    const canCovenTalk = isNight && sub !== "silence";
+    const canChat = canTownChat || (isNight && isCoven && sub !== "silence");
 
     const townInput   = document.getElementById("chat-input");
     const townSendBtn = document.getElementById("chat-send-btn");
-    if (townInput)   townInput.disabled   = !canTownTalk;
-    if (townSendBtn) townSendBtn.disabled = !canTownTalk;
+    if (townInput)   townInput.disabled   = !canChat;
+    if (townSendBtn) townSendBtn.disabled = !canChat;
 
-    if (isCoven) {
-        document.getElementById("coven-input").disabled    = !canCovenTalk;
-        document.getElementById("coven-send-btn").disabled = !canCovenTalk;
+    const actionPanel = document.getElementById("action-panel");
+    if (isNight && sub === "") {
+        selectedTargets = { target: null, target2: null };
+        if (actionPanel) actionPanel.style.display = "";
+        const currentPlayers = Array.from(document.querySelectorAll(".player-entry"))
+            .map(el => ({
+                player_number: parseInt(el.querySelector(".pnum").textContent.replace("#", "")),
+                nickname: el.querySelector("span:last-child").textContent,
+                alive: !el.classList.contains("dead"),
+            }));
+        buildActionPanel(currentPlayers);
+    } else {
+        if (actionPanel) actionPanel.style.display = "none";
+    }
+
+    const votePanel = document.getElementById("vote-panel");
+    if (votePanel) {
+        votePanel.style.display = sub === "voting" ? "" : "none";
+        if (sub === "voting") {
+            const currentPlayers = Array.from(document.querySelectorAll(".player-entry"))
+                .map(el => ({
+                    player_number: parseInt(el.querySelector(".pnum").textContent.replace("#", "")),
+                    nickname: el.querySelector("span:last-child").textContent,
+                    alive: !el.classList.contains("dead"),
+                }));
+            buildVotePanel(currentPlayers);
+        }
+    }
+
+    const verdictPanel = document.getElementById("verdict-panel");
+    if (verdictPanel) verdictPanel.style.display = sub === "verdict" ? "" : "none";
+
+    const dayAbilityPanel = document.getElementById("day-ability-panel");
+    if (dayAbilityPanel && myRoleInfo && DAY_ABILITY_ROLES.includes(myRoleInfo.role)) {
+        const hiddenSubs = ["verdict", "defense", "last_words", "silence"];
+        const show = !isNight && !hiddenSubs.includes(sub);
+        dayAbilityPanel.style.display = show ? "" : "none";
+        if (show) {
+            const currentPlayers = Array.from(document.querySelectorAll(".player-entry"))
+                .map(el => ({
+                    player_number: parseInt(el.querySelector(".pnum").textContent.replace("#", "")),
+                    nickname: el.querySelector("span:last-child").textContent,
+                    alive: !el.classList.contains("dead"),
+                }));
+            buildDayAbilityPanel(currentPlayers);
+        }
     }
 });
 
@@ -467,17 +572,29 @@ socket.on("chat_error", (data) => {
 });
 
 socket.on("votes_updated", (data) => {
-    // data.votes  = { voter_number: target_number }
-    // data.tally  = { target_number: count }
-    // data.threshold = number needed for majority
-    console.log("Votes:", data.tally, "— need", data.threshold);
-    // replace with proper vote UI when built
+    const threshold = document.getElementById("vote-threshold");
+    if (threshold) threshold.textContent = `Need ${data.threshold}`;
+    const tally = document.getElementById("vote-tally");
+    if (!tally) return;
+    tally.innerHTML = "";
+    Object.entries(data.tally).forEach(([pnum, count]) => {
+        const div = document.createElement("div");
+        div.className = "vote-tally-row";
+        div.textContent = `#${pnum}: ${count} vote${count !== 1 ? "s" : ""}`;
+        tally.appendChild(div);
+    });
 });
 
 socket.on("verdicts_updated", (data) => {
-    // data.verdicts = { voter_number: "guilty"|"innocent"|"abstain" }
-    console.log("Verdicts so far:", data.verdicts);
-    // replace with proper verdict UI when built
+    const tally = document.getElementById("verdict-tally");
+    if (!tally) return;
+    const counts = { guilty: 0, innocent: 0, abstain: 0 };
+    Object.values(data.verdicts).forEach(v => { if (counts[v] !== undefined) counts[v]++; });
+    tally.innerHTML = `
+        <span class="v-guilty">Guilty: ${counts.guilty}</span>
+        <span class="v-innocent">Innocent: ${counts.innocent}</span>
+        <span class="v-abstain">Abstain: ${counts.abstain}</span>
+    `;
 });
 
 socket.on("chat_message", (data) => {
@@ -488,10 +605,6 @@ socket.on("chat_message", (data) => {
     div.innerHTML = `<span class="chat-sender">#${data.player_number} ${data.nickname}</span>${data.message}`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
-});
-
-socket.on("chat_error", (data) => {
-    console.warn("Chat blocked:", data.message);
 });
 
 socket.on("action_confirmed", (data) => {
@@ -621,4 +734,29 @@ socket.on("jester_haunt_prompt", (data) => {
 socket.on("haunt_confirmed", (data) => {
     const status = document.getElementById("action-status");
     if (status) status.textContent = `Haunt locked in on #${data.target}.`;
+});
+
+socket.on("day_ability_used", (data) => {
+    if (data.role === "Mayor") {
+        revealedLiving[data.player_number] = "Mayor";
+        const currentPlayers = Array.from(document.querySelectorAll(".player-entry"))
+            .map(el => ({
+                player_number: parseInt(el.querySelector(".pnum").textContent.replace("#", "")),
+                nickname: el.querySelector("span:not(.pnum):not(.prole)").textContent,
+                alive: !el.classList.contains("dead"),
+            }));
+        renderPlayerList(currentPlayers);
+        
+};    const status = document.getElementById("day-ability-status");
+    if (data.role === "Mayor") {
+        const container = document.getElementById("chat-messages");
+        if (container) {
+            const div = document.createElement("div");
+            div.className = "chat-msg system-msg";
+            div.textContent = `#${data.player_number} ${data.nickname} has revealed as Mayor!`;
+            container.appendChild(div);
+        }
+    } else {
+        if (status) status.textContent = data.killed ? "Target eliminated!" : "Target was too strong.";
+    }
 });
